@@ -17,7 +17,7 @@ main = do
     print words
     prettyPrintBoard boardRC
 
--- the output of this function is a 3-tuple of (board, numRow, numCols)   
+-- the output of this function is a 3-tuple of (board, numRows, numCols)   
 readBoard fileName = do
     contents <- readFile fileName
     -- putStr contents
