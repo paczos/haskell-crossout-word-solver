@@ -5,6 +5,8 @@ import Data.String
 import Data.Char
 
 makeOptions w h = (indexesForRows w h) ++ (indexesForColumns w h) ++ (indexesForDiagonalsLeft w h) ++ (indexesForDiagonalsRight w h)
+
+type BoardCell = (Char,Bool)
 main = do
     (puzzleBoard:puzzleWords:_) <- getArgs
     putStrLn "The arguments are:"
@@ -18,8 +20,12 @@ main = do
     print words
     prettyPrintBoard boardRC
     let (board, h, w) = boardRC
-    putStrLn (crossOutWords board words (makeOptions w h))
-    prettyPrintBoard ((crossOutWords board words (makeOptions w h)), h, w)
+    let boardData = fmap (\c -> (c, True)) board
+    let resBoard = (crossOutWords boardData words (makeOptions w h))
+    let resString = fmap (\(b, s)-> if s == False then '#' else b) resBoard
+    prettyPrintBoard (resString, h, w)
+    let finalOut = fmap (\(b,s)->b) (filter (\(b,s)-> s==True) resBoard)
+    putStrLn finalOut
 
 indexesForRows w h = [[a + b * w | a <- [0..w-1]] | b <- [0..h-1]]
 indexesForColumns w h = [[b + a * w | a <- [0..h-1]] | b <- [0..w-1]]
@@ -28,7 +34,7 @@ indexesForDiagonalsLeft w h  = []    -- TODO: generate each Left-diagonal as an 
 
 
 isPrefix [] _ = True
-isPrefix (x:xs) (t:ts) = if x==t then isPrefix xs ts else False
+isPrefix (x:xs) (t:ts) = if x==t  then isPrefix xs ts else False
 isPrefix (x:_) [] = False
 
 findPos' (x:xs) (t:ts) idx = if isPrefix (x:xs) (t:ts) then idx 
@@ -38,11 +44,11 @@ findPos' [] _  idx = idx
 findPos' (_:_) [] _ = -1
 findSubstringPos xs ts = findPos' xs ts 0
 
-crossOutSingle' (b:board) crossIdx currIdx acc = if crossIdx == currIdx then (acc ++ ['X'] ++  board)
- else crossOutSingle' board crossIdx (currIdx+1) (acc++[b])
+crossOutSingle' ((b, s):board) crossIdx currIdx acc = if crossIdx == currIdx then (acc ++ [(b, False)] ++  board)
+ else crossOutSingle' board crossIdx (currIdx+1) (acc++[(b,s)])
 
 crossOutAt board idx = crossOutSingle' board idx 0 []
-option2str board (o:option) = [board !! o] ++ (option2str board option)
+option2str board (o:option) = [fst (board !! o)] ++ (option2str board option)
 option2str _ [] = [] 
 
 crossOutOption board (o:os) = crossOutOption (crossOutAt board o) os
