@@ -29,9 +29,23 @@ main = do
 
 indexesForRows w h = [[a + b * w | a <- [0..w-1]] | b <- [0..h-1]]
 indexesForColumns w h = [[b + a * w | a <- [0..h-1]] | b <- [0..w-1]]
-indexesForDiagonalsRight w h = []    -- TODO: generate each Right-diagonal as an array of indices
-indexesForDiagonalsLeft w h  = []    -- TODO: generate each Left-diagonal as an array of indices
 
+downRightIndex w h index = if i < h - 1 && j < w - 1 then (i + 1) * w + j + 1 else -1 
+                where
+                    i = quot index w
+                    j = mod index w
+
+downLeftIndex w h index = if i < h - 1 && j > 0 then (i + 1) * w + j - 1 else -1 
+                where
+                    i = quot index w
+                    j = mod index w
+
+iterateAll (-1) _ = []
+iterateAll i f = i : iterateAll next f where
+                    next = f (i)
+
+indexesForDiagonalsRight w h = [iterateAll i (downRightIndex w h) | i <- [0..w-1] ++ [i * w | i <- [1..h-1]]]
+indexesForDiagonalsLeft w h = [iterateAll i (downLeftIndex w h) | i <- [0..w-1] ++ [(i + 1) * w - 1 | i <- [1..h-1]]]
 
 isPrefix [] _ = True
 isPrefix (x:xs) (t:ts) = if x==t  then isPrefix xs ts else False
