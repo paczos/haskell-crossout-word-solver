@@ -35,7 +35,7 @@ downRightIndex w h index = if i < h - 1 && j < w - 1 then (i + 1) * w + j + 1 el
                     i = quot index w
                     j = mod index w
 
-downLeftIndex w h index = if i < h - 1 && j > 0 then (i + 1) * w + j - 1 else -1 
+upRightIndex w h index = if i > 0 && j < w - 1 then (i - 1) * w + j + 1 else -1 
                 where
                     i = quot index w
                     j = mod index w
@@ -45,7 +45,7 @@ iterateAll i f = i : iterateAll next f where
                     next = f (i)
 
 indexesForDiagonalsRight w h = [iterateAll i (downRightIndex w h) | i <- [0..w-1] ++ [i * w | i <- [1..h-1]]]
-indexesForDiagonalsLeft w h = [iterateAll i (downLeftIndex w h) | i <- [0..w-1] ++ [(i + 1) * w - 1 | i <- [1..h-1]]]
+indexesForDiagonalsLeft w h = [iterateAll i (upRightIndex w h) | i <- [ i * w | i <- [0..h-1]] ++ [(w * (h - 1))..(w * h) - 1]]
 
 isPrefix [] _ = True
 isPrefix (x:xs) (t:ts) = if x==t  then isPrefix xs ts else False
