@@ -91,13 +91,9 @@ crossOutWords board [] _ = board
 -- the output of this function is a 3-tuple of (board, numRows, numCols)   
 readBoard fileName = do
     contents <- readFile fileName
-    -- putStr contents
     let numRows = length . lines
     let numCols = length . filter (\x -> isAsciiUpper x) . head . lines
-    -- print (numRow contents)
-    -- print (numCols contents)
     let board = filter (\x -> isAsciiUpper x) contents
-    -- print board
     return (board, (numRows contents), (numCols contents))
 
 cmpSize a b | (length a > length b) = LT
@@ -105,7 +101,6 @@ cmpSize a b | (length a > length b) = LT
 -- the output of this function is an array of words
 readWords fileName = do
     contents <- readFile fileName
-    -- putStrLn contents
     return (sortBy cmpSize (lines (filter (\x -> isAsciiUpper x || x == '\n') contents)))
 
 -- just some better printing, takes in a tuple (board, row, column)
