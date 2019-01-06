@@ -20,13 +20,15 @@ main = do
     print words
     prettyPrintBoard boardRC
     let (board, h, w) = boardRC
-    let boardData = fmap (\c -> (c, True)) board
+    let boardData = b2t board
     let resBoard = (crossOutWords boardData words (makeOptions w h))
-    let resString = fmap (\(b, s)-> if s == False then '#' else b) resBoard
+    let resString = t2b resBoard
     prettyPrintBoard (resString, h, w)
     let finalOut = fmap (\(b,s)->b) (filter (\(b,s)-> s==True) resBoard)
     putStrLn finalOut
 
+b2t board = fmap (\c -> (c, True)) board
+t2b boardT = fmap (\(b, s)-> if s == False then '#' else b) boardT
 indexesForRows w h = [[a + b * w | a <- [0..w-1]] | b <- [0..h-1]]
 indexesForColumns w h = [[b + a * w | a <- [0..h-1]] | b <- [0..w-1]]
 
@@ -44,7 +46,7 @@ iterateAll (-1) _ = []
 iterateAll i f = i : iterateAll next f where
                     next = f (i)
 
-indexesForDiagonalsRight w h = [iterateAll i (downRightIndex w h) | i <- [0..w-1] ++ [i * w | i <- [1..h-1]]]
+indexesForDiagonalsRight w h = [iterateAll i (downRightIndex w h) | i <- [0..w-1] ++ [i * w | i <- [1..h-1]]] 
 indexesForDiagonalsLeft w h = [iterateAll i (upRightIndex w h) | i <- [ i * w | i <- [0..h-1]] ++ [(w * (h - 1))..(w * h) - 1]]
 
 isPrefix [] _ = True
@@ -65,12 +67,20 @@ crossOutAt board idx = crossOutSingle' board idx 0 []
 option2str board (o:option) = [fst (board !! o)] ++ (option2str board option)
 option2str _ [] = [] 
 
+option2tuple board (o:option) = [board !! o ] ++ (option2tuple board option)
+option2tuple _ [] = [] 
+
+crossedOut optionTuples =  all (\(char, isNotcrossed)->isNotcrossed==False) optionTuples
+
 crossOutOption board (o:os) = crossOutOption (crossOutAt board o) os
 crossOutOption board [] = board
 crossOut board (opt:options) = crossOut (crossOutOption board opt) options
 crossOut board [] = board
 
-crossOutWord board w (o:options) = if (findSubstringPos w (option2str board o)) /= -1 then crossOutOption board (take (length w) (drop (findSubstringPos w (option2str board o)) o))
+isCrossedOut board option = crossedOut (option2tuple board option)
+extractBoardElems board w o = take (length w) (drop (findSubstringPos w (option2str board o)) o)
+
+crossOutWord board w (o:options) = if (findSubstringPos w (option2str board o)) /= -1 && (isCrossedOut board (extractBoardElems board w o)) == False then crossOutOption board (extractBoardElems board w o)
     else crossOutWord board w options 
 crossOutWord board _ []  = board
 
@@ -90,11 +100,13 @@ readBoard fileName = do
     -- print board
     return (board, (numRows contents), (numCols contents))
 
+cmpSize a b | (length a > length b) = LT
+            | (length b <= length b) = GT
 -- the output of this function is an array of words
 readWords fileName = do
     contents <- readFile fileName
     -- putStrLn contents
-    return (lines (filter (\x -> isAsciiUpper x || x == '\n') contents))
+    return (sortBy cmpSize (lines (filter (\x -> isAsciiUpper x || x == '\n') contents)))
 
 -- just some better printing, takes in a tuple (board, row, column)
 prettyPrintBoard boardRC = do
